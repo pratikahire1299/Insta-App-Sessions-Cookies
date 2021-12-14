@@ -8,6 +8,32 @@ const bcrypt = require("bcrypt");
 router.use(session({ secret:process.env.ACCESS_TOKEN_KEY , saveUninitialized: true, resave: true }));
 const dbconnection = require("../DbConnection.js");
 const User = require("../models/userdetails");
+
+
+exports.register= async(req,res,next)=>{
+  try{  
+        const { Name, User_Name, Contact_Number,Birthdate,Password } = req.body;
+        if (!(User_Name && Password)) {
+            res.status(400).send("Please Enter Valid Inputs");
+        }
+        const oldUser = await User.findOne({ User_Name });
+        if (oldUser) {
+          return res.status(409).send("User Already Exist. Please Login");
+        }
+        encryptedPassword = await bcrypt.hash(Password, 10);
+        const user = await User.create({
+          Name,
+          User_Name,
+          Contact_Number,  
+          Birthdate,
+          Password: encryptedPassword,
+          
+        });
+        res.status(201).json(user);
+      } 
+  catch (err) {
+    console.log(err);
+}};
 exports.login=async (req, res,next) => {
     try {
   
@@ -29,6 +55,7 @@ exports.login=async (req, res,next) => {
       }
 
 };
+
 exports.logout=async (req, res,next) => {
     try {
   

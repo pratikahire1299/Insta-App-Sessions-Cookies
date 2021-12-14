@@ -9,6 +9,7 @@ const dbconnection = require("./DbConnection.js");
 const User = require("./models/userdetails");
 const loginRegisterPage=require("./routes/loginRegisterPage.js");
 const userprofile=require("./routes/userprofile.js");
+const homepage=require("./routes/homepage.js");
 app.use(cookieParser());
 app.use(express.json());
 app.use(session({ secret:process.env.ACCESS_TOKEN_KEY , saveUninitialized: true, resave: true }));
@@ -17,7 +18,7 @@ app.use(session({ secret:process.env.ACCESS_TOKEN_KEY , saveUninitialized: true,
 // console.log(process.env);
 app.use("/loginRegisterPage",loginRegisterPage);
 app.use("/userprofile",userprofile);
- 
+app.use("/homepage",homepage);
 
 app.listen(PORT, () => console.log(`Server at ${PORT}`));
 
