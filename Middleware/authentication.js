@@ -4,7 +4,7 @@ const verifyLogin = (req, res, next) => {
  
   try {
     if(req.session.user){
-        next();     //If session exists, proceed to page
+      return  next();     //If session exists, proceed to page
      } else {
         
         //console.log(req.session.user); 
@@ -14,7 +14,6 @@ const verifyLogin = (req, res, next) => {
   } catch (err) {
     return res.status(401).send("Some Error Occure: ");
   }
-  return next();
 };
 
 module.exports = verifyLogin;

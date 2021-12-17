@@ -47,7 +47,8 @@ exports.login=async (req, res,next) => {
     
             req.session.user = User_Name;
             req.session.save();
-            return res.send("User logged in");
+            //return res.send("User logged in");
+            res.status(200).json({User_Name:user.User_Name,Name:user.Name});
         }else{
         res.status(400).send("Invalid Credentials || Wrong username or password");}
       } catch (err) {

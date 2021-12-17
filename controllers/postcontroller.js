@@ -1,14 +1,10 @@
-const postdetails = require('../models/postdetails')
-const mongoose = require("mongoose");
-const ObjectId = require('mongodb').ObjectId;
-var fs = require('fs');
 
-// const pageNumber =2;
-// const pageSize =10;
-require('dotenv/config');
+const postdetails = require("../models/postdetails");
+
+
 
 exports.get_all_posts_of_all_users = async (req, res, next) => {
-
+	console.log("Current Login User ")
 	let {pageNumber,pageSize} = req.query;
 	if (!pageNumber){pageNumber=2;}
 	if (!pageSize){pageSize=10;}
