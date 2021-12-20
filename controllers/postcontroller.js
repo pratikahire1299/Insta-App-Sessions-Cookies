@@ -1,7 +1,12 @@
 
-const postdetails = require("../models/postdetails");
+const postdetails = require('../models/postdetails')
+const mongoose = require("mongoose");
+const ObjectId = require('mongodb').ObjectId;
+var fs = require('fs');
 
-
+// const pageNumber =2;
+// const pageSize =10;
+require('dotenv/config');
 
 exports.get_all_posts_of_all_users = async (req, res, next) => {
 	console.log("Current Login User ")
@@ -174,7 +179,7 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
 	
 	var id = req.params.User_id;       
 	var new_id = new ObjectId(id);
-	//console.log(new_id)
+	console.log(new_id)
 	 await postdetails.deleteMany( {User_id: new_id} )
 		  .exec()
 		  .then(result => {
