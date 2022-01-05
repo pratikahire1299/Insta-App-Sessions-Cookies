@@ -1,41 +1,50 @@
 const userdetails = require('../models/userdetails');
 
-exports.getuserdetails = async (req, res) => {
-  try {
-    const sessionUser = req.session.user;
-    return res.send(sessionUser);
-  } catch (err) {
-    return res.send(err);
-  }
+exports.getuserdetails = async (req, res, next) => {
+  const sessionUser = req.session.user;
+  // console.log(sessionUser);
+  await userdetails.find({ User_Name: sessionUser }).select('_id Name User_Name Contact_Number Birthdate UserProfile').exec()
+    .then((docs) => {
+      res.status(200).json({
+		  User_Details: docs.map((doc) => ({
+			  _id: doc._id,
+			  User_id: doc.User_id,
+			  User_Name: doc.User_Name,
+          Name: doc.Name,
+          Contact_Number: doc.Contact_Number,
+          Birthdate: doc.Birthdate,
+          UserProfile: doc.UserProfile,
+        })),
+      });
+	  })
+	  .catch((err) => {
+      res.status(500).json({
+		  error: err,
+      });
+	  });
 };
 
 exports.get_user_data = async (req, res, next) => {
   const id = req.params.User_id;
 
-  await userdetails.findById(id)
-	  .select('_id User_Name Contact_Number Birthdate UserProfile')
-	  .exec()
-	  .then((doc) => {
-      if (doc) {
-		  res.status(200).json({
-          _id: doc._id,
-          User_Name: doc.User_Name,
-          Name: doc.Name,
-          Contact_Number: doc.Contact_Number,
-          Birthdate: doc.Birthdate,
-          UserProfile: doc.UserProfile,
-
-		  });
-      } else {
-		  res
-          .status(404)
-          .json({ message: 'No valid User found for provided ID' });
-      }
-	  })
-	  .catch((err) => {
-      console.log(err);
-      res.status(500).json({ error: err });
-	  });
+  await userdetails.findById(id).select('_id User_Name Name Contact_Number Birthdate UserProfile').exec().then((docs) => {
+    res.status(200).json({
+      User_Details: docs.map((doc) => ({
+        _id: doc._id,
+        User_id: doc.User_id,
+        User_Name: doc.User_Name,
+        Name: doc.Name,
+        Contact_Number: doc.Contact_Number,
+        Birthdate: doc.Birthdate,
+        UserProfile: doc.UserProfile,
+      })),
+    });
+  })
+    .catch((err) => {
+      res.status(500).json({
+        error: err,
+      });
+    });
 };
 
 exports.get_all_users = async (req, res) => {

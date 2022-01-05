@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const fs = require('fs');
+// const fs = require('fs');
 const postdetails = require('../models/postdetails');
 require('dotenv/config');
 
@@ -12,18 +12,17 @@ exports.get_all_posts_of_all_users = async (req, res, next) => {
     .skip((pageNumber - 1) * pageSize)
     .limit(pageSize)
     .sort({ LastModifiedDate: -1 })
-
-	    .then((docs) => {
+    .then((docs) => {
       res.status(200).json({
-		  posts_count: docs.length,
-		  All_Posts: docs.map((doc) => ({
-			  _id: doc._id,
-			  User_id: doc.User_id,
-			  User_Name: doc.User_Name,
-			  Heading: doc.Heading,
-			  Description: doc.Description,
-			  LastModifiedDate: doc.LastModifiedDate,
-			  ImageOfPost: doc.ImageOfPost,
+        posts_count: docs.length,
+        All_Posts: docs.map((doc) => ({
+          _id: doc._id,
+          User_id: doc.User_id,
+          User_Name: doc.User_Name,
+          Heading: doc.Heading,
+          Description: doc.Description,
+          LastModifiedDate: doc.LastModifiedDate,
+          ImageOfPost: doc.ImageOfPost,
         })),
       });
 	  })
@@ -173,3 +172,36 @@ exports.delete_all_user_post = async (req, res, next) => {
       });
 		  });
 	  };
+
+exports.postlike = async (req, res, next) => {
+  const { islike } = req.body;
+  const id = req.params.Post_id;
+  const likecount = 0;
+  // const sessionUser = req.session.user;
+  // console.log(islike, id);
+  // await userdetails.find({ User_Name: sessionUser }).select('_id Name User_Name Contact_Number Birthdate UserProfile').exec()
+  //   .then((docs) => {
+  //       likecount++;
+  //   });
+  const data = { Is_Like: islike };
+  await postdetails.updateOne(
+		 { _id: id },
+		 { $set: data },
+	     )
+	  .exec()
+	  .then((result) => {
+      res.status(200).json({
+		  message: 'Like updated',
+		  UpdatedPost: {
+          Liked: result.Is_Like,
+
+		  },
+      });
+	  })
+	  .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+		  error: err,
+      });
+	  });
+};
