@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 // const fs = require('fs');
 const Postdetails = require('../models/postdetails');
+const Userdetails = require('../models/userdetails');
 const Comment = require('../models/comments');
 require('dotenv/config');
 
@@ -178,10 +179,17 @@ exports.delete_all_user_post = async (req, res) => {
 exports.postlike = async (req, res) => {
   const { islike } = req.body;
   const id = req.params.Post_id;
+  const sessionUser = req.session.user;
+  console.log(sessionUser);
+  const idd = await Userdetails.find({ User_Name: sessionUser }).select('_id');
+  console.log(idd);
+
   if (islike === 'Like') {
-    await Postdetails.findOneAndUpdate(
+    const data = { likeBy: idd };
+    await Postdetails.update(
       { _id: id },
-      { $inc: { Like_count: 1 } },
+      { $set: data, $inc: { Like_count: 1 } },
+      { multi: true },
     )
       .exec()
       .then((result) => {
@@ -200,9 +208,12 @@ exports.postlike = async (req, res) => {
         });
       });
   } else {
-    await Postdetails.findOneAndUpdate(
+    const data = { DislikeBy: idd };
+    await Postdetails.update(
       { _id: id },
-      { $inc: { Like_count: -1 } },
+      { $set: data, $inc: { Like_count: -1 } },
+      { multi: true },
+
     )
       .exec()
       .then((result) => {
