@@ -8,7 +8,7 @@ const Postdata = new mongoose.Schema({
   Description: { type: String, default: 'None' },
   LastModifiedDate: { type: Date, default: Date.now },
   ImageOfPost: { type: 'string', default: 'None' },
-  Is_Like: { type: String, enum: ['Like', 'Dislike'], default: 'Dislike' },
+  Like_count: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model('Postdata', Postdata);
