@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const Comments = new mongoose.Schema({
 
-  User_id: { type: mongoose.Schema.Types.ObjectId },
-  Post_id: { type: mongoose.Schema.Types.ObjectId },
-  Comment: { type: String, default: 'None' },
-  LastModifiedDate: { type: Date, default: Date.now },
+  user_id: { type: mongoose.Schema.Types.ObjectId },
+  post_id: { type: mongoose.Schema.Types.ObjectId },
+  comment: { type: String, default: 'None' },
+  lastModifiedDate: { type: Date, default: Date.now },
 
 });
 
