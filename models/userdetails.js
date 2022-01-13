@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const User = new mongoose.Schema({
-  Name: { type: String, default: '' },
-  User_Name: { type: String, default: '' },
-  Contact_Number: { type: Number, default: 0 },
-  Birthdate: { type: 'string', format: 'date' },
-  Password: { type: String },
-  UserProfile: { type: 'string', default: 'None' },
+  name: { type: String, default: '' },
+  user_name: { type: String, default: '' },
+  contact_number: { type: Number, default: 0 },
+  birthdate: { type: String, format: 'date' },
+  password: { type: String, default: '' },
+  profile_image: { type: String, default: 'null' },
 });
 
 module.exports = mongoose.model('User', User);

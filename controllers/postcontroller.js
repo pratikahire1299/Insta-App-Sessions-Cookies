@@ -5,110 +5,70 @@ const Userdetails = require('../models/userdetails');
 const Comment = require('../models/comments');
 require('dotenv/config');
 
-exports.get_all_posts_of_all_users = async (req, res) => {
+exports.getAllPostOfAllUsers = async (req, res) => {
   let { pageNumber, pageSize } = req.query;
   if (!pageNumber) { pageNumber = 2; }
   if (!pageSize) { pageSize = 2; }
-
-  await Postdetails.find()
-    .skip((pageNumber - 1) * pageSize)
-    .limit(pageSize)
-    .sort({ LastModifiedDate: -1 })
-    .then((docs) => {
-      res.status(200).json({
-        posts_count: docs.length,
-        All_Posts: docs.map((doc) => ({
-          Id: doc._id,
-          User_id: doc.User_id,
-          User_Name: doc.User_Name,
-          Heading: doc.Heading,
-          Description: doc.Description,
-          LastModifiedDate: doc.LastModifiedDate,
-          ImageOfPost: doc.ImageOfPost,
-        })),
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: err,
-      });
-    });
+  let count = ''; let posts = '';
+  [count, posts] = await Promise.all([Postdetails.countDocuments(),
+    Postdetails.find()
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .sort({ lastModifiedDate: -1 })]);
+  return res.status(200).json({
+    Is_success: true,
+    data: { count, posts },
+    message: 'Success',
+    status_code: 200,
+  });
 };
 
-exports.get_user_posts = async (req, res) => {
-  const id = req.params.User_id;
+exports.getUserPost = async (req, res) => {
+  const id = req.params.user_id;
   const newid = new ObjectId(id);
   let { pageNumber, pageSize } = req.query;
   if (!pageNumber) { pageNumber = 2; }
-  if (!pageSize) { pageSize = 10; }
-
-  await Postdetails.find({ User_id: newid })
-    .skip((pageNumber - 1) * pageSize)
-    .limit(pageSize)
-    .sort({ LastModifiedDate: -1 })
-    .select('_id User_Name Heading Description LastModifiedDate ImageOfPost')
-    .exec()
-    .then((docs) => {
-      if (docs) {
-        // console.log(doc);
-        res.status(200).json({
-          User_Posts: docs.map((doc) => ({
-            Id: doc._id,
-            User_id: doc.User_id,
-            User_Name: doc.User_Name,
-            Heading: doc.Heading,
-            Description: doc.Description,
-            LastModifiedDate: doc.LastModifiedDate,
-            ImageOfPost: doc.ImageOfPost,
-          })),
-
-        });
-      } else {
-        res
-          .status(404)
-          .json({ message: 'No valid entry found for provided ID' });
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ error: err });
-    });
-};
-
-exports.create_user_post = (req, res) => {
-  const post = new Postdetails({
-    User_id: req.params.User_id,
-    User_Name: req.body.User_Name,
-    Heading: req.body.Heading,
-    Description: req.body.Description,
-    ImageOfPost: req.file.path,
+  if (!pageSize) { pageSize = 2; }
+  let count = ''; let posts = '';
+  [count, posts] = await Promise.all([Postdetails.countDocuments(),
+    Postdetails.find({ User_id: newid })
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize)
+      .sort({ lastModifiedDate: -1 })]);
+  return res.status(200).json({
+    Is_success: true,
+    data: { count, posts },
+    message: 'Success',
+    status_code: 200,
   });
-
-  post.save()
-    .then((result) => {
-      res.status(201).json({
-        message: 'Post Added successfully',
-        createdPost: {
-          User_Name: result.User_Name,
-          Heading: result.Heading,
-          Description: result.Description,
-        },
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        error: err,
-      });
-    });
 };
 
-exports.Update_User_post = async (req, res) => {
-  const id = req.params.Post_id;
+exports.createUserPost = (req, res) => {
+  const timeInMss = Date.now();
+  const post = new Postdetails({
+    user_id: req.params.user_id,
+    user_name: req.body.user_name,
+    heading: req.body.heading,
+    description: req.body.description,
+    lastModifiedDate: timeInMss,
+    imageOfPost: req.file.path,
+  });
+  console.log(post);
+  post.save();
+  return res.status(200).json({
+    Is_success: true,
+    data: { post },
+    message: 'Success',
+    status_code: 200,
+  });
+};
+
+exports.updateUserPost = async (req, res) => {
+  const id = req.params.post_id;
   const timeInMss = Date.now();
   const newpostdata = {
-    Heading: req.body.Heading,
-    Description: req.body.Description,
+    Heading: req.body.heading,
+    Description: req.body.description,
     LastModifiedDate: timeInMss,
     ImageOfPost: req.file.path,
   };
@@ -123,10 +83,10 @@ exports.Update_User_post = async (req, res) => {
       res.status(200).json({
         message: 'Product updated',
         UpdatedPost: {
-          LastModifiedDate: result.LastModifiedDate,
-          Heading: result.Heading,
-          Description: result.Description,
-          ImageOfPost: result.ImageOfPost,
+          LastModifiedDate: result.lastModifiedDate,
+          Heading: result.heading,
+          Description: result.description,
+          ImageOfPost: result.imageOfPost,
         },
       });
     })
@@ -138,10 +98,10 @@ exports.Update_User_post = async (req, res) => {
     });
 };
 
-exports.delete_user_post = async (req, res) => {
+exports.deleteUserPost = async (req, res) => {
 // Postdetails.remove({ _id: req.params._id })
 
-  await Postdetails.deleteOne({ _id: req.params.Post_id })
+  await Postdetails.deleteOne({ _id: req.params.post_id })
     .exec()
     .then((result) => {
       res.status(200).json({
@@ -156,11 +116,11 @@ exports.delete_user_post = async (req, res) => {
     });
 };
 
-exports.delete_all_user_post = async (req, res) => {
-  const id = req.params.User_id;
+exports.deleteAllUserPost = async (req, res) => {
+  const id = req.params.user_id;
   const newid = new ObjectId(id);
   // console.log(new_id)
-  await Postdetails.deleteMany({ User_id: newid })
+  await Postdetails.deleteMany({ user_id: newid })
     .exec()
     .then((result) => {
       res.status(200).json({
@@ -178,17 +138,17 @@ exports.delete_all_user_post = async (req, res) => {
 
 exports.postlike = async (req, res) => {
   const { islike } = req.body;
-  const id = req.params.Post_id;
+  const id = req.params.post_id;
   const sessionUser = req.session.user;
   console.log(sessionUser);
-  const idd = await Userdetails.find({ User_Name: sessionUser }).select('_id');
+  const idd = await Userdetails.find({ user_name: sessionUser }).select('_id');
   console.log(idd);
 
   if (islike === 'Like') {
     const data = { likeBy: idd };
     await Postdetails.update(
       { _id: id },
-      { $set: data, $inc: { Like_count: 1 } },
+      { $set: data, $inc: { like_count: 1 } },
       { multi: true },
     )
       .exec()
@@ -196,7 +156,7 @@ exports.postlike = async (req, res) => {
         res.status(200).json({
           message: 'Like updated',
           UpdatedPost: {
-            Liked: result.Is_Like,
+            Liked: result.is_Like,
 
           },
         });
@@ -208,10 +168,10 @@ exports.postlike = async (req, res) => {
         });
       });
   } else {
-    const data = { DislikeBy: idd };
+    const data = { dislikeBy: idd };
     await Postdetails.update(
       { _id: id },
-      { $set: data, $inc: { Like_count: -1 } },
+      { $set: data, $inc: { like_count: -1 } },
       { multi: true },
 
     )
@@ -220,7 +180,7 @@ exports.postlike = async (req, res) => {
         res.status(200).json({
           message: 'DisLike updated',
           UpdatedPost: {
-            Liked: result.Is_Like,
+            Liked: result.is_Like,
 
           },
         });
@@ -236,9 +196,9 @@ exports.postlike = async (req, res) => {
 
 exports.postcomment = (req, res) => {
   const commentdata = new Comment({
-    User_id: req.params.User_id,
-    Post_id: req.params.Post_id,
-    Comment: req.body.Comment,
+    user_id: req.params.user_id,
+    post_id: req.params.post_id,
+    comment: req.body.comment,
   });
 
   commentdata.save()
@@ -246,9 +206,9 @@ exports.postcomment = (req, res) => {
       res.status(201).json({
         message: 'Comment Added successfully',
         AddedComment: {
-          User_id: result.User_id,
-          Post_id: result.Post_id,
-          Comment: result.Comment,
+          user_id: result.user_id,
+          post_id: result.post_id,
+          comment: result.comment,
         },
       });
     })

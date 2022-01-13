@@ -4,7 +4,7 @@ const Express = require('express');
 
 const router = Express.Router();
 const controllers = require('../controllers/postcontroller');
-const auth = require('../Middleware/authentication');
+const auth = require('../middleware/authentication');
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
@@ -18,10 +18,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.get('/:User_id', auth, controllers.get_user_posts); // Get posts of User Accept:user: _id
-router.post('/:User_id', auth, upload.single('ImageOfPost'), controllers.create_user_post); // ADD Post of User Accept:user: _id
-router.delete('/:Post_id', auth, controllers.delete_user_post); // delete  post of User required Accept: post: _id
-router.patch('/:Post_id', auth, upload.single('ImageOfPost'), controllers.Update_User_post); // Update any post  Accept: Post: _id
-router.delete('/:User_id/all', auth, controllers.delete_all_user_post); // delete  post of User required Accept: user: _id
+router.get('/:user_id', auth, controllers.getUserPost); // Get posts of User Accept:user: _id
+router.post('/:user_id', auth, upload.single('imageOfPost'), controllers.createUserPost); // ADD Post of User Accept:user: _id
+router.delete('/:post_id', auth, controllers.deleteUserPost); // delete  post of User required Accept: post: _id
+router.patch('/:post_id', auth, upload.single('imageOfPost'), controllers.updateUserPost); // Update any post  Accept: Post: _id
+router.delete('/:user_id/all', auth, controllers.deleteAllUserPost); // delete  post of User required Accept: user: _id
 
 module.exports = router;

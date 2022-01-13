@@ -8,9 +8,9 @@ const multer = require('multer');
 
 multer({ dest: 'public/uploads/' });
 
-const homepage = require('./routes/homepage');
-const userdashboard = require('./routes/userdashboard');
-const userprofile = require('./routes/userprofile');
+const homepage = require('./routes/homePage');
+const userdashboard = require('./routes/userDashboard');
+const userprofile = require('./routes/userProfile');
 const loginRegister = require('./routes/loginRegisterPage');
 
 const Port = process.env.Port || 7000;
@@ -27,9 +27,9 @@ app.use(session({
 
 }));
 
-app.use('/homepage', homepage);
-app.use('/userdashboard', userdashboard);
-app.use('/userprofile', userprofile);
+app.use('/homePage', homepage);
+app.use('/userDashboard', userdashboard);
+app.use('/userProfile', userprofile);
 app.use('/loginRegisterPage', loginRegister);
 
 app.listen(Port, () => {
