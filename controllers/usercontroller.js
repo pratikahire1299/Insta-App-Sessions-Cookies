@@ -28,26 +28,13 @@ exports.getUserdetails = async (req, res) => {
 exports.getUserdetailsById = async (req, res) => {
   const id = req.params.user_id;
   console.log(id);
-  await Userdetails.findById(id).select('_id name user_name contact_number birthdate userProfile').exec()
-    .then((docs) => {
-      res.status(200).json({
-        User_Details: docs.map((doc) => ({
-          _id: doc._id,
-          User_id: doc.user_id,
-          User_Name: doc.user_name,
-          Name: doc.name,
-          Contact_Number: doc.contact_number,
-          Birthdate: doc.birthdate,
-          UserProfile: doc.userProfile,
-        })),
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-
-        error: err,
-      });
-    });
+  const result = await Userdetails.findById(id).select('_id name user_name contact_number birthdate userProfile').exec();
+  return res.status(200).json({
+    Is_success: true,
+    data: result,
+    message: 'Success',
+    status_code: 200,
+  });
 };
 
 exports.get_all_users = async (req, res) => {

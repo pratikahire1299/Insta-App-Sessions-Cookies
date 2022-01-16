@@ -30,11 +30,14 @@ exports.getUserPost = async (req, res) => {
   if (!pageNumber) { pageNumber = 2; }
   if (!pageSize) { pageSize = 2; }
   let count = ''; let posts = '';
-  [count, posts] = await Promise.all([Postdetails.countDocuments(),
-    Postdetails.find({ User_id: newid })
-      .skip((pageNumber - 1) * pageSize)
+  [posts, count] = await Promise.all([
+    Postdetails.find({ user_id: newid }).skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
-      .sort({ lastModifiedDate: -1 })]);
+      .sort({ lastModifiedDate: -1 }),
+    Postdetails.countDocuments(),
+
+  ]);
+
   return res.status(200).json({
     Is_success: true,
     data: { count, posts },
@@ -53,7 +56,7 @@ exports.createUserPost = (req, res) => {
     lastModifiedDate: timeInMss,
     imageOfPost: req.file.path,
   });
-  console.log(post);
+
   post.save();
   return res.status(200).json({
     Is_success: true,
@@ -78,120 +81,78 @@ exports.updateUserPost = async (req, res) => {
     { $set: newpostdata },
     { multi: true },
   )
-    .exec()
-    .then((result) => {
-      res.status(200).json({
-        message: 'Product updated',
-        UpdatedPost: {
-          LastModifiedDate: result.lastModifiedDate,
-          Heading: result.heading,
-          Description: result.description,
-          ImageOfPost: result.imageOfPost,
-        },
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        error: err,
-      });
-    });
+    .exec();
+  return res.status(200).json({
+
+    Is_success: true,
+    data: { newpostdata },
+    message: 'Success',
+    status_code: 200,
+
+  });
 };
 
 exports.deleteUserPost = async (req, res) => {
-// Postdetails.remove({ _id: req.params._id })
+  const data = await Postdetails.deleteOne({ _id: req.params.post_id })
+    .exec();
+  return res.status(200).json({
 
-  await Postdetails.deleteOne({ _id: req.params.post_id })
-    .exec()
-    .then((result) => {
-      res.status(200).json({
-        message: 'Post deleted',
-        Deleted_Post: result,
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: err,
-      });
-    });
+    Is_success: true,
+    data: { data },
+    message: 'Success',
+    status_code: 200,
+
+  });
 };
 
 exports.deleteAllUserPost = async (req, res) => {
   const id = req.params.user_id;
   const newid = new ObjectId(id);
+  let count = ''; let posts = '';
   // console.log(new_id)
-  await Postdetails.deleteMany({ user_id: newid })
-    .exec()
-    .then((result) => {
-      res.status(200).json({
-        posts_count: result.length,
-        message: 'All Post deleted',
+  [posts, count] = await Promise.all([
+    Postdetails.deleteMany({ user_id: newid }),
+    Postdetails.countDocuments(),
+  ]);
+  return res.status(200).json({
 
-      });
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: err,
-      });
-    });
+    Is_success: true,
+    data: { Deleted_posts: posts, count },
+    message: 'Success',
+    status_code: 200,
+
+  });
 };
 
 exports.postlike = async (req, res) => {
   const { islike } = req.body;
   const id = req.params.post_id;
   const sessionUser = req.session.user;
-  console.log(sessionUser);
-  const idd = await Userdetails.find({ user_name: sessionUser }).select('_id');
-  console.log(idd);
-
+  // console.log(sessionUser);
+  const idOfUser = await Userdetails.find({ user_name: sessionUser }).select('_id');
+  // console.log(idd);
+  let data = '';
   if (islike === 'Like') {
-    const data = { likeBy: idd };
-    await Postdetails.update(
-      { _id: id },
-      { $set: data, $inc: { like_count: 1 } },
-      { multi: true },
-    )
-      .exec()
-      .then((result) => {
-        res.status(200).json({
-          message: 'Like updated',
-          UpdatedPost: {
-            Liked: result.is_Like,
-
-          },
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({
-          error: err,
-        });
-      });
+    data = { likeBy: idOfUser };
   } else {
-    const data = { dislikeBy: idd };
-    await Postdetails.update(
-      { _id: id },
-      { $set: data, $inc: { like_count: -1 } },
-      { multi: true },
-
-    )
-      .exec()
-      .then((result) => {
-        res.status(200).json({
-          message: 'DisLike updated',
-          UpdatedPost: {
-            Liked: result.is_Like,
-
-          },
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({
-          error: err,
-        });
-      });
+    data = { dislikeBy: idOfUser };
   }
+  await Postdetails.updateOne(
+    { _id: id },
+    { $set: data },
+    { multi: true },
+
+  );
+  const count = await Postdetails.find({ _id: id }).select('likeBy').count();
+
+  return res.status(200).json({
+
+    Is_success: true,
+    data: { count },
+    message: 'Success',
+    status_code: 200,
+
+  });
 };
 
 exports.postcomment = (req, res) => {
@@ -201,21 +162,13 @@ exports.postcomment = (req, res) => {
     comment: req.body.comment,
   });
 
-  commentdata.save()
-    .then((result) => {
-      res.status(201).json({
-        message: 'Comment Added successfully',
-        AddedComment: {
-          user_id: result.user_id,
-          post_id: result.post_id,
-          comment: result.comment,
-        },
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        error: err,
-      });
-    });
+  commentdata.save();
+  return res.status(200).json({
+
+    Is_success: true,
+    data: { commentdata },
+    message: 'Success',
+    status_code: 200,
+
+  });
 };

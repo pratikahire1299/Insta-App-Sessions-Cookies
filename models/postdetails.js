@@ -7,7 +7,7 @@ const Postdata = new mongoose.Schema({
   heading: { type: String, default: 'null' },
   description: { type: String, default: 'null' },
   lastModifiedDate: { type: Date, default: Date.now },
-  imageOfPost: { type: String },
+  imageOfPost: { type: String, default: 'null' },
   like_count: { type: Number, default: 0 },
   likeBy: [{ type: mongoose.Schema.Types.ObjectId, default: 'null' }],
   dislikeBy: [{ type: mongoose.Schema.Types.ObjectId, default: 'null' }],
